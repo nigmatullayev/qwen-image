@@ -1,0 +1,9 @@
+torch
+accelerate
+transformers>=4.42.0
+huggingface_hub
+pillow
+einops
+tiktoken
+runpod
+xformers

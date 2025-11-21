@@ -1,11 +1,8 @@
 [serverless]
 entrypoint = "handler.py"
-port = 8000
+gpu = "T4"
+volume = "/runpod-volume"
 
-[gpu]
-type = "A100"
-count = 1
-
-[resources]
-network_volume = "/runpod-volume"
-timeout = 600
+[env]
+TRANSFORMERS_CACHE = "/runpod-volume/qwen_image"
+HF_HOME = "/runpod-volume/qwen_image"

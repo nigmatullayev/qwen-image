@@ -1,158 +1,263 @@
-# Qwen-Image Fast-API
+# 🚀 Qwen-Image RunPod Serverless Deployment
 
-[![RunPod](https://api.runpod.io/badge/arkodeepsen/qwen-image)](https://console.runpod.io/hub/arkodeepsen/qwen-image)
+Bu loyiha **Qwen/Qwen-Image** modelini RunPod Serverless platformasida deploy qilish uchun mo'ljallangan.
 
-[![One-Click Pod Deployment](https://cdn.prod.website-files.com/67d20fb9f56ff2ec6a7a657d/685b44aed6fc50d169003af4_banner-runpod.webp)](https://console.runpod.io/deploy?template=wqf5o3topx&ref=az0kmnor)
+## 📋 Talablar
 
-A production-ready RunPod serverless endpoint for Alibaba's Qwen-Image model - a powerful text-to-image generation model with superior text rendering capabilities in both English and Chinese.
+- RunPod akkaunti
+- GitHub repository
+- RunPod Network Volume (30GB tavsiya)
+- GPU: T4 / A10G / L40
 
-## Features
+## 📁 Loyiha tuzilmasi
 
-- **Official Qwen-Image Model** - 20B MMDiT image foundation model
-- **GPU Optimized** - Runs on A100 80GB, H100 PCIe, H100 HBM3, H100 NVL, and high-end workstation GPUs
-- **Auto-scaling** - Scales to 0 when idle to save costs
-- **Network Volume Storage** - Model cached persistently across all workers
-- **Fast Cold Starts** - Optimized Docker image with pre-installed dependencies
-
-## Model Specifications
-
-- **Model**: `Qwen/Qwen-Image` (20B parameters)
-- **Recommended VRAM**: 80GB (A100/H100 recommended)
-- **Precision**: bfloat16 (CUDA) / float32 (CPU)
-- **Default Resolution**: 1024x1024
-- **Text Rendering**: Exceptional quality for both English and Chinese text
-- **License**: Apache 2.0
-
-## API Usage
-
-### Input Format
-
-```json
-{
-  "input": {
-    "prompt": "Your image description here",
-    "negative_prompt": " ",
-    "width": 1024,
-    "height": 1024,
-    "num_inference_steps": 50,
-    "true_cfg_scale": 4.0,
-    "seed": null
-  }
-}
+```
+repo-root/
+│
+├── handler.py              # Asosiy RunPod handler
+├── requirements.txt        # Python bog'liqliklar
+├── runpod.toml            # RunPod konfiguratsiya
+├── README.md              # Dokumentatsiya
+├── .gitignore             # Git ignore fayllar
+├── test_api.py            # API test skripti
+│
+└── src/
+    ├── __init__.py        # Package init
+    └── model_loader.py    # Model yuklash va inference
 ```
 
-### Parameters
+## 🔧 O'rnatish
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `prompt` | string | **required** | Description of the image to generate |
-| `negative_prompt` | string | `" "` | What to avoid in the image |
-| `width` | integer | `1024` | Image width (pixels) |
-| `height` | integer | `1024` | Image height (pixels) |
-| `num_inference_steps` | integer | `50` | Number of denoising steps (higher = better quality, slower) |
-| `true_cfg_scale` | float | `4.0` | Classifier-free guidance scale |
-| `seed` | integer | `null` | Random seed for reproducibility (optional) |
-
-### Output Format
-
-```json
-{
-  "image": "base64_encoded_png_data",
-  "seed": 12345
-}
-```
-
-### Example Request (Python)
-
-```python
-import runpod
-import base64
-from PIL import Image
-import io
-
-runpod.api_key = "your_api_key_here"
-
-endpoint = runpod.Endpoint("YOUR_ENDPOINT_ID")
-
-request = {
-    "input": {
-        "prompt": "A serene mountain landscape with Chinese calligraphy 'Harmony'",
-        "width": 1024,
-        "height": 1024,
-        "num_inference_steps": 50,
-        "seed": 42
-    }
-}
-
-run = endpoint.run_sync(request)
-
-# Decode and save image
-img_data = base64.b64decode(run['image'])
-image = Image.open(io.BytesIO(img_data))
-image.save('output.png')
-
-print(f"Generated with seed: {run['seed']}")
-```
-
-### Example Request (cURL)
+### 1. GitHub Repository yarating
 
 ```bash
-curl -X POST https://api.runpod.ai/v2/YOUR_ENDPOINT_ID/runsync \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+git init
+git add .
+git commit -m "Initial commit: Qwen-Image RunPod deployment"
+git remote add origin <your-github-repo-url>
+git push -u origin main
+```
+
+### 2. RunPod Network Volume yarating
+
+1. RunPod → Storage → Create Network Volume
+2. Nom: `qwen-image-cache`
+3. Hajm: 30GB
+4. Mount path: `/runpod-volume`
+
+### 3. RunPod Serverless Endpoint yarating
+
+1. **RunPod Dashboard** → **Serverless** → **Create Endpoint**
+
+2. **Endpoint Settings:**
+   - Name: `qwen-image-api`
+   - GPU: T4 / A10G / L40
+   - Workers: Auto-scale
+
+3. **Container Setup:**
+   - Source: **GitHub Repository**
+   - Repository URL: `https://github.com/<username>/<repo>`
+   - Branch: `main`
+
+4. **Network Volume:**
+   - Attach: `qwen-image-cache`
+   - Mount path: `/runpod-volume`
+
+5. **Environment Variables:**
+   ```
+   TRANSFORMERS_CACHE=/runpod-volume/qwen_image
+   HF_HOME=/runpod-volume/qwen_image
+   HF_TOKEN=<your-huggingface-token>  # Agar kerak bo'lsa
+   ```
+
+6. **Deploy** tugmasini bosing
+
+## 📡 API Ishlatish
+
+### cURL misoli
+
+```bash
+curl -X POST https://api.runpod.ai/v2/<ENDPOINT_ID>/run \
+  -H "Authorization: Bearer <YOUR_RUNPOD_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{
     "input": {
-      "prompt": "A futuristic cityscape at sunset",
-      "width": 1024,
-      "height": 1024,
-      "num_inference_steps": 50
+      "prompt": "a cute cat in cyberpunk city",
+      "max_new_tokens": 512,
+      "temperature": 0.7
     }
   }'
 ```
 
-## Deployment Configuration
+### Python misoli
 
-The template is configured with optimal settings in `runpod.toml`:
+```python
+import requests
 
-- **GPU Types**: A100 80GB PCIe, H100 PCIe, H100 HBM3, H100 NVL, RTX 6000 Blackwell, RTX 6000 Blackwell Workstation, RTX Pro 6000 Max-Q Workstation
-- **Recommended VRAM**: 80GB
-- **Container Disk**: 5GB (code + dependencies)
-- **Network Volume**: ~100GB (persistent model storage) - **⚠️ REQUIRED**
-- **Workers**: 0-3 (auto-scaling)
-- **Timeout**: 600 seconds per job
+ENDPOINT_ID = "your-endpoint-id"
+API_KEY = "your-runpod-api-key"
 
-### ⚠️ Important: Network Volume Required
+url = f"https://api.runpod.ai/v2/{ENDPOINT_ID}/run"
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
 
-**You MUST attach a network volume (~100GB) when deploying this endpoint.**
+data = {
+    "input": {
+        "prompt": "a beautiful sunset over mountains",
+        "max_new_tokens": 300,
+        "temperature": 0.8
+    }
+}
 
-The Qwen-Image model is ~57GB and requires significant disk space. Without a network volume:
-- ❌ Deployment will fail due to insufficient disk space
-- ❌ Model cannot be downloaded or cached
-- ❌ Workers will crash during initialization
+response = requests.post(url, json=data, headers=headers)
+print(response.json())
+```
 
-The network volume:
-- ✅ Stores the model persistently across all workers
-- ✅ Prevents re-downloading the model on every cold start
-- ✅ Enables faster scaling and startup times
+### JavaScript misoli
 
-## Performance
+```javascript
+const ENDPOINT_ID = 'your-endpoint-id';
+const API_KEY = 'your-runpod-api-key';
 
-- **Cold Start**: ~60-120 seconds (model download on first run)
-- **Warm Inference**: ~20-40 seconds (depends on steps and resolution)
-- **Memory Usage**: ~50-60GB VRAM for 1024x1024 images (20B parameter model)
+const response = await fetch(`https://api.runpod.ai/v2/${ENDPOINT_ID}/run`, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${API_KEY}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    input: {
+      prompt: 'a futuristic cityscape',
+      max_new_tokens: 400,
+      temperature: 0.7
+    }
+  })
+});
 
-## Tips for Best Results
+const result = await response.json();
+console.log(result);
+```
 
-1. **Prompt Quality**: Be specific and descriptive
-2. **Steps**: 30-50 steps for good quality, 50-100 for best quality
-3. **CFG Scale**: 3.5-5.0 works well for most prompts
-4. **Text Rendering**: Qwen-Image excels at rendering text - great for logos, signs, and calligraphy
-5. **Seed**: Use the same seed to reproduce images
+## 📥 Request Formati
 
-## License
+```json
+{
+  "input": {
+    "prompt": "your prompt here",
+    "max_new_tokens": 512,
+    "temperature": 0.7,
+    "image_path": null
+  }
+}
+```
 
-This endpoint uses the Qwen-Image model licensed under Apache 2.0. For more information, visit the [official Qwen-Image repository](https://github.com/QwenLM/Qwen-Image).
+### Parametrlar
 
-## Support
+- `prompt` (string, majburiy): Matn prompti
+- `max_new_tokens` (int, ixtiyoriy): Maksimal generatsiya uzunligi (default: 512)
+- `temperature` (float, ixtiyoriy): Generatsiya harorati (default: 0.7)
+- `image_path` (string, ixtiyoriy): Rasm fayli yo'li
 
-For issues or questions about this RunPod template, please open an issue on the GitHub repository.
+## 📤 Response Formati
+
+```json
+{
+  "output": {
+    "generated_text": "...",
+    "model": "Qwen/Qwen-Image",
+    "prompt": "your prompt",
+    "parameters": {
+      "max_new_tokens": 512,
+      "temperature": 0.7
+    }
+  },
+  "status": "success"
+}
+```
+
+## 🧪 Test qilish
+
+Test skriptini ishlatish:
+
+```bash
+# Environment variables o'rnatish
+export RUNPOD_ENDPOINT_ID="your-endpoint-id"
+export RUNPOD_API_KEY="your-api-key"
+
+# Test skriptini ishga tushirish
+python test_api.py
+```
+
+## 🔒 Xavfsizlik
+
+- ✅ HuggingFace tokenlar faqat Environment Variables'da
+- ✅ API keylari GitHub'ga yuklanmaydi
+- ✅ HTTPS protokoli ishlatiladi
+- ✅ RunPod authentication
+
+## ⚡ Optimallashtirish
+
+Loyiha quyidagi optimallashtirish usullarini ishlatadi:
+
+- `torch.float16` - xotira iste'molini kamaytiradi
+- `device_map="auto"` - avtomatik GPU distribution
+- `torch.no_grad()` - gradient hisoblashni o'chiradi
+- `model.eval()` - inference rejimi
+- Network Volume - model cache'ini saqlash
+
+## 🐛 Debugging
+
+### Loglarni ko'rish
+
+RunPod Dashboard → Endpoint → Logs
+
+### Keng tarqalgan muammolar
+
+1. **Model yuklanmayapti:**
+   - Network Volume to'g'ri ulangan ekanligini tekshiring
+   - Environment variables to'g'ri sozlanganligini tekshiring
+
+2. **GPU xotirasi yetmayapti:**
+   - Katta GPU tanlang (A10G / L40)
+   - `max_new_tokens` ni kamaytiring
+
+3. **Timeout xatoliklari:**
+   - Worker timeout'ni oshiring
+   - Model cache'ini to'g'ri sozlang
+
+## 📊 Monitoring
+
+RunPod Dashboard'da:
+- Request statistikasi
+- GPU ishlatilishi
+- Xatoliklar loglari
+- Response time
+
+## 🔄 Yangilash
+
+```bash
+# Kodni yangilang
+git add .
+git commit -m "Update: new features"
+git push
+
+# RunPod avtomatik yangilanadi
+```
+
+## 📞 Yordam
+
+Muammolar yuzaga kelsa:
+- [RunPod Documentation](https://docs.runpod.io)
+- [HuggingFace Qwen Model](https://huggingface.co/Qwen/Qwen-Image)
+- GitHub Issues
+
+## 📝 License
+
+MIT License
+
+---
+
+**Yaratilgan sana:** 2025
+**Model:** Qwen/Qwen-Image

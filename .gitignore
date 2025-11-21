@@ -16,74 +16,59 @@ parts/
 sdist/
 var/
 wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Environments
-.env
-.venv
-env/
+# Virtual Environment
 venv/
+env/
 ENV/
-env.bak/
-venv.bak/
+.venv
 
 # IDE
 .vscode/
 .idea/
-.claude/
 *.swp
 *.swo
-
-# OS
+*~
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
-# Model cache
+# Model cache (local development)
 models/
-*.safetensors
+cache/
+*.pth
+*.pt
 *.bin
-
-# Generated images
-generated_images/
-outputs/
-*.png
-*.jpg
-*.jpeg
-
-# Docker
-.dockerignore
+*.safetensors
 
 # Logs
 *.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# RunPod local testing
+.runpod/
+
+# API Keys & Secrets
+secrets.json
+config.json
+*.key
+*.pem
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
